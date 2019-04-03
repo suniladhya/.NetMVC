@@ -1,0 +1,118 @@
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+
+namespace OffshoreTests
+{
+    public interface IDBOperation
+    {
+        CommandType commandType { get; set; }   
+        string connectionString { get; set; }
+
+        /// <summary>
+        /// To Execute a Stored Procedure and Return a table
+        /// </summary>
+        /// <param name="CommandText">Stored Procedure</param>
+        /// <param name="CommandParams">Stored Procedure Parameter</param>
+        /// <returns> Data Table</returns>
+        void ExecuteNonQuery(string CommandText, List<SqlParameter> CommandParams);
+
+        /// <summary>
+        /// To Execute a Stored Procedure
+        /// </summary>
+        /// <param name="CommandText">Stored Procedure</param>
+        /// <param name="CommandParams">Stored Procedure Parameter</param>
+        DataTable ExecuteQuery(string CommandText, List<SqlParameter> CommandParams);
+    }
+}
+
+
+namespace CND.Assurant.JobApproval.OffshoreTests
+{
+    public class DBOperation : IDBOperation
+    {
+        public string connectionString { get; set; }
+        public CommandType commandType { get; set; }
+
+        public string Message { get; set; }
+        public Exception ex { get; set; }
+
+
+        public DataTable ExecuteQuery(string CommandText, List<SqlParameter> CommandParams)
+        {
+            DataTable dt = new DataTable();
+            dt.TableName = "Result";
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand(CommandText, con))
+                    {
+                        cmd.CommandType = commandType;
+
+                        foreach (var param in CommandParams)
+                        {
+                            cmd.Parameters.Add(param);
+                        }
+                        SqlDataAdapter da = new SqlDataAdapter();
+                        da.SelectCommand = cmd;
+
+                        con.Open();
+                        da.Fill(dt);
+                        con.Close();
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return dt;
+
+
+           // List<SqlParameter> p = new List<SqlParameter>();
+            //p.Add(new SqlParameter { ParameterName = "@GROUPNAME", SqlDbType = SqlDbType.VarChar, Value = "" });
+            //p.Add(new SqlParameter { ParameterName = "@JOBOPTIO", SqlDbType = SqlDbType.VarChar });
+            //p.Add(new SqlParameter { ParameterName = "@JOBIDSEQ", SqlDbType = SqlDbType.VarChar });
+            //p.Add(new SqlParameter { ParameterName = "@SFCIDSEQ", SqlDbType = SqlDbType.VarChar });
+
+
+
+        }
+
+        public void ExecuteNonQuery(string CommandText, List<SqlParameter> CommandParams)
+        {
+            DataTable dt = new DataTable();
+            dt.TableName = "Result";
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand(CommandText, con))
+                    {
+                        cmd.CommandType = commandType;
+
+                        foreach (var param in CommandParams)
+                        {
+                            cmd.Parameters.Add(param);
+                        }
+                        SqlDataAdapter da = new SqlDataAdapter();
+                        da.SelectCommand = cmd;
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+                        con.Close();
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+    }
+}
